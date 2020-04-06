@@ -14,6 +14,7 @@ app.get('/',(request,response)=>{
 });
 
 app.get('/weather',weatherHandler );
+app.get('/location',locatonHandler);
 
 function weatherHandler(request,response){
   const city = request.query.city
@@ -22,6 +23,31 @@ function weatherHandler(request,response){
   .then (Data => response.status(200).json(Data));
 
 }
+function locatonHandler(request,response){
+  const city = request.query.city;
+ getLocation(city)
+ .then (weatherData => response.status(200).json(weatherData));
+
+}
+function getLocation(city){
+let key = process.env.LOCATION_API_KEY;
+const url= `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
+return superagent.get(url)
+.then(geoData =>{
+  const locationData = new Location (city , geoData.body);
+  return locationData;
+})
+
+
+}
+function Location (city,geoData){
+  this.search_query = city;
+  this.formatted_query = geoData[0].display_name;
+  this.latitude = geoData[0].lat;
+  this.longitude = geoData[0].lon;
+}
+
+
 function getWeather(city){
   const weatherSummaries = [];
   let key = process.env.WEATHER_API_KEY;
