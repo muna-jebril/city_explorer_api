@@ -38,9 +38,9 @@ res.send(weatherArray);
 
   function Location (city, data){
     this.search_query = city;
-    this.formatted_query = data.display_name;
-    this.latitude = data.lat;
-    this.longitude = data.lng;
+    this.formatted_query = data[0].display_name;
+    this.latitude = data[0].lat;
+    this.longitude = data[0].lng;
   }
 
 function Weather (city , weatherData,i){
