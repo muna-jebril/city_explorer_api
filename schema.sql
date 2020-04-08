@@ -9,4 +9,4 @@ CREATE TABLE city (
     longitude float
 );
 
-INSERT INTO city (search_query,formatted_query,latitude,longitude) VALUES ('my city',' city',50.66,40.115);
+INSERT INTO city (search_query,formatted_query,latitude,longitude) VALUES ('muna','indusiua',50.66,40.115);
