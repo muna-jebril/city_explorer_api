@@ -31,17 +31,20 @@ let SQL = 'SELECT * FROM city';
   })
   .catch(error => errorHandler(error));
 })
-// app.get('/add',(request,response)=>{
-// let searchQquery= request.query.search_query;
-// let formattedQuery=request.query.formatted_query;
-// let lat=request.query.latitude;
-// let lon= request.query.longitude;
-//   let SQL = 'INSERT INTO city (search_query,formatted_query,latitude,longitude) VALUES '
-//   let safeValues = [searchQquery, formattedQuery,lat,lon];
+app.get('/add',(request,response)=>{
+let searchQquery= request.query.search_query;
+let formattedQuery=request.query.formatted_query;
+let lat=request.query.latitude;
+let lon= request.query.longitude;
+  let SQL = 'INSERT INTO city (search_query,formatted_query,latitude,longitude) VALUES ($1,$2,$3,$4)';
+  let safeValues = [searchQquery, formattedQuery,lat,lon];
   
-//   client.query(SQL,safeValues)
-
-// })
+  client.query(SQL,safeValues)
+  .then(results=>{
+    response.status(200).json(results.rows);
+  })
+.catch(error=>errorHandler(error));
+})
 
 // Error Handler 
 app.get('', notFoundHandler);
@@ -89,7 +92,7 @@ function getLocation(city) {
       return locationData;
     })
 
-
+// hello 
 }
 function Location(city, geoData) {
   this.search_query = city;
