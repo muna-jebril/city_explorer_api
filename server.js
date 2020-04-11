@@ -18,11 +18,15 @@ const client = new pg.Client(process.env.DATABASE_URL);
 app.get('/location', locationHandler);
 app.get('/weather', weatherHandler);
 app.get('/trails',trailsHandler);
+app.get('/movies',moviesHandler);
+app.get('/yelp',yelpHandler);
+
+
 
 function locationHandler(request, response) {
   
   const city = request.query.city;
-  console.log(city,"vvvv");
+  // console.log(city,"vvvv");
   getLocation(city)
   .then(locationData => response.status(200).json(locationData));
 }
@@ -32,32 +36,32 @@ function getLocation(city) {
   return client.query(SQL, safeValues)
 
   .then(results => {
-      console.log(results.rows.length, "bbbb");
+      // console.log(results.rows.length, "bbbb");
       if (results.rows.length) {
-        console.log(results.rows,"gggggg");
+        // console.log(results.rows,"gggggg");
         return results.rows[0];
       }
       else {
         let key = process.env.LOCATION_API_KEY;
-        console.log(key , "key");
+        // console.log(key , "key");
         const url = `https://eu1.locationiq.com/v1/search.php?key=${key}&q=${city}&format=json`;
         return superagent.get(url)
         .then(geoData => {
-            console.log(geoData.body,"ffff");
+            // console.log(geoData.body,"ffff");
             const locationData = new Location(city, geoData.body);
-            console.log(locationData,"location");
+            // console.log(locationData,"location");
             let search = locationData.search_query;
             let formatted_Query = locationData.formatted_query;
             let lat = locationData.latitude;
             let lon = locationData.longitude;
-            console.log(city,"bbbbmmm");
+            // console.log(city,"bbbbmmm");
             let SQL = 'INSERT INTO city (search_query,formatted_query,latitude,longitude) VALUES($1,$2,$3,$4)';
-            console.log(SQL,"fff");
+            // console.log(SQL,"fff");
             let safeValues = [search, formatted_Query, lat, lon];
-            console.log(safeValues,"safevalues");
+            // console.log(safeValues,"safevalues");
             return client.query(SQL, safeValues)
               .then(api=>{
-                console.log(api.rows,"mmmmmmmmmm");
+                // console.log(api.rows,"mmmmmmmmmm");
                  return locationData  ;
               })
               
@@ -75,25 +79,84 @@ function Location(city, geoData) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 function weatherHandler(request, response) {
   const city = request.query.search_query;
-    console.log(city, "zzzzzzzzzzz");
-    getWeather(city)
-    .then(Data => response.status(200).json(Data));
-    
-  }
+  // console.log(city, "zzzzzzzzzzz");
+  getWeather(city)
+  .then(Data => response.status(200).json(Data));
+  
+}
+
+function moviesHandler(request,response){
+  const city = request.query.search_query;
+  getMovies(city)
+  .then(moviesData => response.status(200).json(moviesData));
+  
+}
+function yelpHandler(request,response)
+{
+  const city=request.query.search_query;
+ getyelp(city)
+ 
+    .then(yelpData =>response.status(200).json(yelpData));
+}
+
+function getyelp(city)
+{
+  let key=process.env.YELP_API_KEY;
+// console.log(resturant,"zzzzzzzzzzzz");
+let url = `https://api.yelp.com/v3/businesses/search?location=${city}`;
+return superagent.get(url)
+  .set('Authorization', `Bearer ${key}`)
+  .then( yelpData => {
+    console.log(yelpData.body.businesses);
+    return yelpData.body.businesses.map( (val) => {
+      return new YELP(val);
+
+
+    });
+  })
+}
+
+
+
+function getMovies(city){
+  let moviesArray = [];
+  let key = process.env.MOVIES_API_KEY;
+  let url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${city}`;
+
+return superagent.get(url)
+.then((Values)=>{
+  // console.log(Values,"bbbbb");
+  Values.body.results.map((val)=>{
+    let Values = new MOVIEs (val);
+    moviesArray.push(Values);
+
+  });
+  return moviesArray;
+
+})
+};
+
+
+function MOVIEs(movie){
+  this.title = movie.title;
+  this.overview = movie.overview;
+    this.average_votes = movie.average_votes;
+    this.total_votes = movie.total_votes;
+    this.image_url = `https://image.tmdb.org/t/p/w500/${movie.poster_path}`;
+  this.popularity=movie.popularity;
+  this.released_on= movie.released_on;
+}
+
+function YELP(yelpData){
+  this.name= yelpData.name;
+  this.image_url= yelpData.image_url;
+  this.price= yelpData.price;
+  this.rating= yelpData.rating;
+this.url= yelpData.url;
+}
+
   function getWeather(city) {
     const weatherSummaries = [];
   let key = process.env.WEATHER_API_KEY;
@@ -103,7 +166,7 @@ function weatherHandler(request, response) {
     Data.body.data.map(val => {
       var Data = new Weather(val);
       weatherSummaries.push(Data);
-      console.log(Data, "aaaaa");
+      // console.log(Data, "aaaaa");
       
     });
     return weatherSummaries;
@@ -130,7 +193,7 @@ function trailsHandler(request, response) {
   const url = `https://www.hikingproject.com/data/get-trails?lat=${lat}&lon=${lon}&maxDistance=200&key=${key}`;
   return superagent.get(url)
     .then(trailsData => {
-      console.log
+      // console.log
       trailsData.body.trails.map(val => {
 
         trailsDataarr.push( new Trail(val));
@@ -165,6 +228,7 @@ function notFoundHandler(request,response) {
 }
 
 function errorHandler(error, request, response) {
+  // console.log(error);
   response.status(500).send(error);
 }
 
