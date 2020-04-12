@@ -12,7 +12,7 @@ app.use(cors());
 const client = new pg.Client(process.env.DATABASE_URL);
 
 
-
+// lab8 
 
 
 app.get('/location', locationHandler);
